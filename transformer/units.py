@@ -1,7 +1,13 @@
 import torch
 import torch.nn as nn
+import numpy as np
 
 INFINITY = 1e9
+
+"""
+TODO: Take account of zero paddings for batched training. 
+      Current implementation is fine with single example training.
+"""
 
 
 class MultiHeadAttention(nn.Module):
@@ -81,10 +87,10 @@ class MultiHeadAttention(nn.Module):
 
 
 class FeedForward(nn.Module):
-    def __init__(self, d_model):
+    def __init__(self, d_model, d_ff):
         super(FeedForward, self).__init__()
-        self.linear1 = nn.Linear(in_features=d_model, out_features=d_model)
-        self.linear2 = nn.Linear(in_features=d_model, out_features=d_model)
+        self.linear1 = nn.Linear(in_features=d_model, out_features=d_ff)
+        self.linear2 = nn.Linear(in_features=d_ff, out_features=d_model)
         self.layer_norm = nn.LayerNorm(d_model)
 
     def forward(self, X):
@@ -97,5 +103,17 @@ class FeedForward(nn.Module):
 
 
 class PositionalEncoder:
-    def __init__(self):
-        pass
+    def __init__(self, d_model, max_len):
+        self.d_model = d_model
+        self.theta = lambda pos: [pos/10000**(1/d_model * (i//2)*2) for i in range(d_model)]
+        self.embedding = self.initialize_embeddings(max_len)
+
+    def initialize_embeddings(self, len_q):
+        out = np.zeros((len_q, self.d_model))
+        pos_table = np.array([self.theta(pos) for pos in range(len_q)])
+        out[:, 0::2] = np.sin(pos_table[:, 0::2])
+        out[:, 1::2] = np.cos(pos_table[:, 1::2])
+        return torch.FloatTensor(out)
+
+    def apply(self, len_q):
+        return self.embedding[:len_q, :]
