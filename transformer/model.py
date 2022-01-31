@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import numpy as np
-
+from units import MultiHeadAttention, FeedForward, PositionalEncoder
 
 class Encoder(nn.Module):
     def __init__(self):
