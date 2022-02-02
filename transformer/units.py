@@ -117,3 +117,11 @@ class PositionalEncoder:
 
     def apply(self, len_q):
         return self.embedding[:len_q, :]
+
+
+class BatchMask:
+    """
+    Zero pad the input data and return mask matrix
+    """
+    def __init__(self):
+        return
